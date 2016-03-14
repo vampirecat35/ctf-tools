@@ -1,4 +1,3 @@
-from Crypto.PublicKey import RSA
 from Crypto.Util import asn1
 from rsautils import *
 
@@ -25,6 +24,10 @@ def generate_key_from_pqe(p, q, e):
     key['dq'] = dq
     key['qinv'] = qinv
     return key
+
+def generate_pem_from_pqe(p, q, e):
+    key = generate_key_from_pqe(p, q, e)
+    return generate_pem_from_key(key)
 
 if __name__ == "__main__":
     import sys
