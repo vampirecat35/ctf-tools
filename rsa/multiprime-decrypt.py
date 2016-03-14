@@ -1,22 +1,6 @@
 from Crypto.Util.number import *
 from pwn import hexdump
-
-def egcd(a, b):
-    u, u1 = 1, 0
-    v, v1 = 0, 1
-    while b:
-        q = a // b
-        u, u1 = u1, u - q * u1
-        v, v1 = v1, v - q * v1
-        a, b = b, a - q * b
-    return a, u, v
-
-def modinv(a, m):
-    g, x, y = egcd(a, m)
-    print a, m, g, x, y
-    if g != 1:
-        raise ValueError
-    return x % m
+from rsautils import *
 
 # http://crypto.stackexchange.com/questions/31109/rsa-enc-decryption-with-multiple-prime-modulus-using-crt/31112#31112
 def decrypt3(r1, r2, r3, e, N, ct):
