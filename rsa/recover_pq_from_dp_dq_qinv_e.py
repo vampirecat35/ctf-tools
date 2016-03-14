@@ -27,8 +27,5 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         print "Usage: %s <dp> <dq> <qinv> <e>" % sys.argv[0]
     else:
-        dp   = int(sys.argv[1])
-        dq   = int(sys.argv[2])
-        qinv = int(sys.argv[3])
-        e    = int(sys.argv[4])
-        recover_pqd_from_dp_dq_qinv_e(dp, dq, qinv, e)
+        args = [int(x) for x in sys.argv[1:]]
+        recover_pqd_from_dp_dq_qinv_e(*tuple(args))
