@@ -1,0 +1,10 @@
+# Python
+*.pyc
+
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
