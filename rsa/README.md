@@ -8,11 +8,11 @@
 
 Openssl can be a bit cryptic to use, no pun intended. Here are some useful commands when working with RSA crypto.
 
-Generate a public key from a private PEM file:
+Generate a public key from a private key in PEM format:
 
     openssl rsa -in private.pem -pubout > public.pem
 
-Encrypting a message with a public key: (Note that the message can't be longer than the key size)
+Encrypting a message with a public key: (Note that the message can't be longer than the key length)
 
     cat plaintext.txt | openssl rsautl -encrypt -pubin -inkey public.pem > ciphertext.txt
 
