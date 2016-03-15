@@ -9,7 +9,7 @@ def generate_pem_from_key(key):
 
 def generate_key_from_pqe(p, q, e):
     N = p * q
-    d = modinv(e, (p - 1) * (q - 1))
+    d = d_from_primes_e([p, q], e)
     dp = d % p
     dq = d % q
     qinv = pow(q, p - 2, p)
@@ -40,7 +40,7 @@ def test():
     dp =   0xD27CF34B94BE45DF
     dq =   0xDF6B22A63089DBA9
     qinv = 0x8F0BE7FB1368EA30
-    print generate_key(N, e, d, p, q, dp, dq, qinv)
+    print  generate_pem_from_pqe(p, q, e)
 
     '''
     Should generate a key that, when viewed with asn1parse, generates the following output:
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         print "Usage: %s <p> <q> <e>" % sys.argv[0]
     elif sys.argv[1] == '-test':
-        test1()
+        test()
     else:
         convert = lambda x: int(x, 16) if x[:2] == "0x" else int(x)
         args = [convert(x) for x in sys.argv[1:]]

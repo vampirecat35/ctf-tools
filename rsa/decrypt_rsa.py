@@ -6,13 +6,6 @@ except ImportError:
 from rsautils import *
 from generate_pem_from_pqe import generate_key_from_pqe
 
-def decrypt(key, ct):
-    e = key['e']
-    N = key['N']
-    d = key['d']
-    pt = pow(ct, d, N)
-    return pt
-
 
 def test():
     from Crypto.Util.number import bytes_to_long, long_to_bytes
@@ -23,7 +16,7 @@ def test():
     e = 65537
     key = generate_key_from_pqe(p, q, e)
     ct = bytes_to_long(ct)
-    pt = decrypt(key, ct)
+    pt = rsa_decrypt(ct, key['d'], key['N'])
     print hexdump(long_to_bytes(pt))
 
 if __name__ == "__main__":
@@ -37,6 +30,5 @@ if __name__ == "__main__":
         convert = lambda x: int(x, 16) if x[:2] == "0x" else int(x)
         args = [convert(x) for x in sys.argv[1:]]
         key = generate_key_from_pqe(*tuple(args))
-        #print key
-        pt = decrypt(key, ct)
+        pt = rsa_decrypt(ct, key['d'], key['N'])
         print hexdump(pt)
