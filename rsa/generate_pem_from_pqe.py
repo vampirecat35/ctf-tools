@@ -1,33 +1,4 @@
-from Crypto.Util import asn1
 from rsautils import *
-
-def generate_pem_from_key(key):
-    seq = asn1.DerSequence()
-    seq[:] = [ 0, key['N'], key['e'], key['d'], key['p'], key['q'], key['dp'], key['dq'], key['qinv'] ]
-    exported_key = "-----BEGIN RSA PRIVATE KEY-----\n%s-----END RSA PRIVATE KEY-----" % seq.encode().encode("base64")
-    return exported_key
-
-def generate_key_from_pqe(p, q, e):
-    N = p * q
-    d = d_from_primes_e([p, q], e)
-    dp = d % p
-    dq = d % q
-    qinv = pow(q, p - 2, p)
-
-    key = {}
-    key['N'] = N
-    key['e'] = e
-    key['d'] = d
-    key['p'] = p
-    key['q'] = q
-    key['dp'] = dp
-    key['dq'] = dq
-    key['qinv'] = qinv
-    return key
-
-def generate_pem_from_pqe(p, q, e):
-    key = generate_key_from_pqe(p, q, e)
-    return generate_pem_from_key(key)
 
 def test():
     # For testing
