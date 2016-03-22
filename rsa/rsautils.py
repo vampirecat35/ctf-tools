@@ -2,6 +2,8 @@ from Crypto.Util import asn1
 import sympy
 from sympy import primetest
 from sympy.solvers.diophantine import extended_euclid
+from fractions import gcd
+import random
 
 def modinv(a, m):
     y, x, g = extended_euclid(m, a)
@@ -16,8 +18,8 @@ def d_from_primes_e(primes, e):
     d = long(modinv(e, sympy.lcm_list(p_minus_1)))
     return d
 
-# Stolen from https://github.com/p4-team/ctf/tree/master/2016-03-12-0ctf/equation
-def recover_pqd_from_dp_dq_qinv_e(dp, dq, qinv, e):
+# Based on https://github.com/p4-team/ctf/tree/master/2016-03-12-0ctf/equation
+def recover_pq_from_dp_dq_qinv_e(dp, dq, qinv, e):
     results = []
     d1p = dp * e - 1
     for k in range(3, e):
@@ -32,8 +34,56 @@ def recover_pqd_from_dp_dq_qinv_e(dp, dq, qinv, e):
                         q = hq + 1
                         if primetest.isprime(q):
                             if (qinv * q) % p == 1 or (qinv * p) % q == 1:
-                                results.append((p, q, e))
+                                results.append((p, q))
     return results
+
+
+# Based on https://gist.github.com/ddddavidee/b34c2b67757a54ce75cb
+def recover_pq_from_ned(n, e, d):
+	"""The following algorithm recovers the prime factors
+		of a modulus, given the public and private
+		exponents.
+		Function call: recover_pq_from_ned(n, e, d)
+		Input: 	n: modulus
+				e: public exponent
+				d: private exponent
+		Output: (p, q): prime factors of modulus"""
+
+    def output_primes(a, n):
+    	p = gcd(a, n)
+    	q = int(n / p)
+    	if p > q:
+    		p, q = q, p
+    	return p,q
+
+	k = d * e - 1
+	if k % 2 == 1:
+		return 0, 0
+	else:
+		t = 0
+		r = k
+		while(r % 2 == 0):
+			r = int(r / 2)
+			t += 1
+		for i in range(1, 101):
+			g = random.randint(0, n) # random g in [0, n-1]
+			y = pow(g, r, n)
+			if y == 1 or y == n - 1:
+				continue
+			else:
+				for j in range(1, t): # j \in [1, t-1]
+					x = pow(y, 2, n)
+					if x == 1:
+						p, q = output_primes(y - 1, n)
+						return p, q
+					elif x == n - 1:
+						continue
+					y = x
+					x = pow(y, 2, n)
+					if  x == 1:
+						p, q = output_primes(y - 1, n)
+						return p, q
+
 
 def generate_pem_from_key(key):
     seq = asn1.DerSequence()
@@ -64,9 +114,13 @@ def generate_pem_from_pqe(p, q, e):
     return generate_pem_from_key(key)
 
 def generate_pem_from_dp_dq_qinv_e(dp, dq, qinv, e):
-    pqe = recover_pqd_from_dp_dq_qinv_e(dp, dq, qinv, e)
-    return generate_pem_from_pqe(*pqe[0])
+    p, q = recover_pq_from_dp_dq_qinv_e(dp, dq, qinv, e)
+    return generate_pem_from_pqe(p, q, e)
 
 def rsa_decrypt(ct, d, N):
     pt = pow(ct, d, N)
     return pt
+
+def rsa_encrypt(pt, e, N):
+    ct = pow(pt, e, N)
+    return ct
