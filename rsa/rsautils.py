@@ -4,6 +4,10 @@ from sympy import primetest
 from sympy.solvers.diophantine import extended_euclid
 from fractions import gcd
 import random
+from collections import namedtuple
+
+PrivateKey = namedtuple('Key', ['N','e','d','p','q','dp','dq','qinv'])
+
 
 def modinv(a, m):
     y, x, g = extended_euclid(m, a)
@@ -40,54 +44,55 @@ def recover_pq_from_dp_dq_qinv_e(dp, dq, qinv, e):
 
 # Based on https://gist.github.com/ddddavidee/b34c2b67757a54ce75cb
 def recover_pq_from_ned(n, e, d):
-	"""The following algorithm recovers the prime factors
-		of a modulus, given the public and private
-		exponents.
-		Function call: recover_pq_from_ned(n, e, d)
-		Input: 	n: modulus
-				e: public exponent
-				d: private exponent
-		Output: (p, q): prime factors of modulus"""
+    """The following algorithm recovers the prime factors
+        of a modulus, given the public and private
+        exponents.
+        Function call: recover_pq_from_ned(n, e, d)
+        Input:     n: modulus
+                e: public exponent
+                d: private exponent
+        Output: (p, q): prime factors of modulus"""
 
     def output_primes(a, n):
-    	p = gcd(a, n)
-    	q = int(n / p)
-    	if p > q:
-    		p, q = q, p
-    	return p,q
+        p = gcd(a, n)
+        q = int(n / p)
+        if p > q:
+            p, q = q, p
+        return p,q
 
-	k = d * e - 1
-	if k % 2 == 1:
-		return 0, 0
-	else:
-		t = 0
-		r = k
-		while(r % 2 == 0):
-			r = int(r / 2)
-			t += 1
-		for i in range(1, 101):
-			g = random.randint(0, n) # random g in [0, n-1]
-			y = pow(g, r, n)
-			if y == 1 or y == n - 1:
-				continue
-			else:
-				for j in range(1, t): # j \in [1, t-1]
-					x = pow(y, 2, n)
-					if x == 1:
-						p, q = output_primes(y - 1, n)
-						return p, q
-					elif x == n - 1:
-						continue
-					y = x
-					x = pow(y, 2, n)
-					if  x == 1:
-						p, q = output_primes(y - 1, n)
-						return p, q
+    k = d * e - 1
+    if k % 2 == 1:
+        return 0, 0
+    else:
+        t = 0
+        r = k
+        while(r % 2 == 0):
+            r = int(r / 2)
+            t += 1
+        for i in range(1, 101):
+            g = random.randint(0, n) # random g in [0, n-1]
+            y = pow(g, r, n)
+            if y == 1 or y == n - 1:
+                continue
+            else:
+                for j in range(1, t): # j \in [1, t-1]
+                    x = pow(y, 2, n)
+                    if x == 1:
+                        p, q = output_primes(y - 1, n)
+                        return p, q
+                    elif x == n - 1:
+                        continue
+                    y = x
+                    x = pow(y, 2, n)
+                    if  x == 1:
+                        p, q = output_primes(y - 1, n)
+                        return p, q
 
 
 def generate_pem_from_key(key):
     seq = asn1.DerSequence()
-    seq[:] = [ 0, key['N'], key['e'], key['d'], key['p'], key['q'], key['dp'], key['dq'], key['qinv'] ]
+    # key is in correct order
+    seq[:] = [0] + list(key)
     exported_key = "-----BEGIN RSA PRIVATE KEY-----\n%s-----END RSA PRIVATE KEY-----" % seq.encode().encode("base64")
     return exported_key
 
@@ -98,23 +103,17 @@ def generate_key_from_pqe(p, q, e):
     dq = d % q
     qinv = pow(q, p - 2, p)
 
-    key = {}
-    key['N'] = N
-    key['e'] = e
-    key['d'] = d
-    key['p'] = p
-    key['q'] = q
-    key['dp'] = dp
-    key['dq'] = dq
-    key['qinv'] = qinv
-    return key
+    return PrivateKey(N, e, d, p, q, dp, dq, qinv)
 
 def generate_pem_from_pqe(p, q, e):
     key = generate_key_from_pqe(p, q, e)
     return generate_pem_from_key(key)
 
 def generate_pem_from_dp_dq_qinv_e(dp, dq, qinv, e):
-    p, q = recover_pq_from_dp_dq_qinv_e(dp, dq, qinv, e)
+    results = recover_pq_from_dp_dq_qinv_e(dp, dq, qinv, e)
+    assert len(results) > 0
+    p = results[0][0]
+    q = results[0][1]
     return generate_pem_from_pqe(p, q, e)
 
 def rsa_decrypt(ct, d, N):

@@ -61,7 +61,8 @@ if __name__ == "__main__":
     import sys
     if len(sys.argv) == 1:
         print "Usage: %s <dp> <dq> <qinv> <e>" % sys.argv[0]
-        print "       %s -test" % sys.argv[0]
+        print "       %s -test1" % sys.argv[0]
+        print "       %s -test2" % sys.argv[0]
     elif sys.argv[1] == '-test1':
         test1()
     elif sys.argv[1] == '-test2':

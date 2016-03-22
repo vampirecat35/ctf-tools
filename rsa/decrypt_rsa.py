@@ -16,7 +16,7 @@ def test():
     e = 65537
     key = generate_key_from_pqe(p, q, e)
     ct = bytes_to_long(ct)
-    pt = rsa_decrypt(ct, key['d'], key['N'])
+    pt = rsa_decrypt(ct, key.d, key.N)
     print hexdump(long_to_bytes(pt))
 
 if __name__ == "__main__":
