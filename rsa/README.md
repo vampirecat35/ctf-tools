@@ -24,3 +24,7 @@ Decrypting a ciphertext with a complete private key in PEM format:
 Dump all values from a PEM file
 
     cat private.pem | openssl asn1parse -inform PEM -i -dump -offset 0
+    
+Convert a public ssh key to PEM and show the contents using asn1parse
+
+    ssh-keygen -f key.pub -e -m pem | openssl asn1parse
